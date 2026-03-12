@@ -3,10 +3,12 @@ import { router } from "./routes";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 
+import { LoadingPage } from "./components/loading-page";
+
 function App() {
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-      <RouterProvider router={router} />
+      <RouterProvider router={router} fallbackElement={<LoadingPage />} />
       <Toaster 
         position="top-right" 
         richColors

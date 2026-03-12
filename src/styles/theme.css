@@ -77,6 +77,8 @@
   --sidebar-accent-foreground: #ededed;
   --sidebar-border: rgba(255, 255, 255, 0.1);
   --sidebar-ring: #9B2C9B;
+  --warning: #f97316;
+  --warning-foreground: #ffffff;
 }
 
 @theme inline {
@@ -118,6 +120,8 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
 }
 
 @layer base {
