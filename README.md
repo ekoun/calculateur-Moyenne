@@ -1,11 +1,24 @@
+# Calculateur de Moyenne
 
-  # Créer site web avec logo
+**Calculateur de Moyenne** est une application web simple et moderne qui permet de calculer vos moyennes facilement, que ce soit pour l'école ou d'autres calculs numériques.  
 
-  This is a code bundle for Créer site web avec logo. The original project is available at https://www.figma.com/design/yY0T8h7Uu9l2naKaZYC8p5/Cr%C3%A9er-site-web-avec-logo.
+Le site utilise **React**, **Vite**, **Framer Motion** pour les animations et **jsPDF** pour générer des rapports PDF.
 
-  ## Running the code
+---
 
-  Run `npm i` to install the dependencies.
+## 🔹 Fonctionnalités
 
-  Run `npm run dev` to start the development server.
-  
+- Calcul automatique de moyennes simples ou pondérées  
+- Interface **responsive** pour tous les écrans  
+- Animations fluides avec **Framer Motion**  
+- Export de résultats au format **PDF** avec **jsPDF**  
+- Écran de chargement moderne lors de l’ouverture du site
+
+---
+
+## 💻 Installation
+
+1. Cloner le dépôt :
+
+```bash
+git clone https://github.com/ekoun/calculateur-Moyenne.git
