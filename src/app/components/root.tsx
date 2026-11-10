@@ -44,7 +44,7 @@ export function Root() {
 
   React.useEffect(() => {
     const launchTimer = showLaunchScreen
-      ? window.setTimeout(() => setShowLaunchScreen(false), 1600)
+      ? window.setTimeout(() => setShowLaunchScreen(false), 2400)
       : undefined;
 
     const handleBeforeInstallPrompt = (event: Event) => {
@@ -130,34 +130,39 @@ export function Root() {
             initial={{ opacity: 1 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
-            className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background"
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-background"
           >
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className="flex flex-col items-center gap-4"
-            >
+            <div className="flex flex-col items-center justify-center gap-8 -translate-y-2">
               <motion.img
                 src={`${import.meta.env.BASE_URL}icons/icon-192.svg`}
                 alt=""
                 className="h-24 w-24 rounded-2xl shadow-lg"
-                initial={{ scale: 0.96, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.35, ease: "easeOut" }}
+                initial={{ opacity: 0, y: -120, x: 0, scale: 1 }}
+                animate={{ opacity: 1, y: 0, x: 0, scale: 1 }}
+                transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
               />
-              <div className="text-center">
+
+              <motion.div
+                initial={{ opacity: 0, y: 26 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
+                className="text-center"
+              >
                 <h1 className="text-xl font-bold text-primary">CM - REATD</h1>
                 <p className="mt-1 text-sm text-muted-foreground">Calculateur de Moyennes</p>
-              </div>
-            </motion.div>
-            <p
-              className="absolute inset-x-0 bottom-0 text-center text-sm font-medium text-muted-foreground"
-              style={{ paddingBottom: "calc(2rem + env(safe-area-inset-bottom))" }}
-            >
-              Mr Ekoun
-            </p>
+              </motion.div>
+
+              <motion.p
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.45, ease: "easeOut" }}
+                className="text-base font-semibold text-muted-foreground tracking-wide"
+                style={{ marginTop: "5rem" }}
+              >
+                Mr Ekoun
+              </motion.p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

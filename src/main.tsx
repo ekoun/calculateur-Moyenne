@@ -14,7 +14,15 @@
   document.documentElement.setAttribute("translate", "no");
   document.documentElement.classList.add("notranslate");
 
-  createRoot(rootElement!).render(<App />);
+  createRoot(rootElement!).render(
+    <>
+      <App />
+    </>
+  );
+
+  requestAnimationFrame(() => {
+    document.body.classList.add('ready');
+  });
 
 // register service worker for PWA installability
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
