@@ -44,7 +44,7 @@ export function Root() {
 
   React.useEffect(() => {
     const launchTimer = showLaunchScreen
-      ? window.setTimeout(() => setShowLaunchScreen(false), 2400)
+      ? window.setTimeout(() => setShowLaunchScreen(false), 3200)
       : undefined;
 
     const handleBeforeInstallPrompt = (event: Event) => {
@@ -133,32 +133,33 @@ export function Root() {
             transition={{ duration: 0.2, ease: "easeOut" }}
             className="fixed inset-0 z-[100] flex items-center justify-center bg-background"
           >
-            <div className="flex flex-col items-center justify-center gap-8 -translate-y-2">
-              <motion.img
-                src={`${import.meta.env.BASE_URL}icons/icon-192.svg`}
-                alt=""
-                className="h-24 w-24 rounded-2xl shadow-lg"
-                initial={{ opacity: 0, y: -120, x: 0, scale: 1 }}
-                animate={{ opacity: 1, y: 0, x: 0, scale: 1 }}
-                transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-              />
+            <div className="relative flex h-full w-full items-center justify-center">
+              <div className="flex flex-col items-center justify-center translate-y-[-0.75rem]">
+                <motion.img
+                  src={`${import.meta.env.BASE_URL}icons/icon-192.svg`}
+                  alt=""
+                  className="h-24 w-24 rounded-2xl shadow-lg"
+                  initial={{ opacity: 0, y: -110 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1] }}
+                />
 
-              <motion.div
-                initial={{ opacity: 0, y: 26 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
-                className="text-center"
-              >
-                <h1 className="text-xl font-bold text-primary">CM - REATD</h1>
-                <p className="mt-1 text-sm text-muted-foreground">Calculateur de Moyennes</p>
-              </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, y: 22 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.7, delay: 0.3, ease: "easeOut" }}
+                  className="mt-5 text-center"
+                >
+                  <h1 className="text-xl font-bold text-primary">CM - REATD</h1>
+                  <p className="mt-1 text-sm text-muted-foreground">Calculateur de Moyennes</p>
+                </motion.div>
+              </div>
 
               <motion.p
-                initial={{ opacity: 0, y: 24 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.45, ease: "easeOut" }}
-                className="text-base font-semibold text-muted-foreground tracking-wide"
-                style={{ marginTop: "5rem" }}
+                transition={{ duration: 0.7, delay: 0.6, ease: "easeOut" }}
+                className="absolute bottom-10 left-0 right-0 text-center text-lg font-semibold tracking-[0.08em] text-muted-foreground"
               >
                 Mr Ekoun
               </motion.p>
