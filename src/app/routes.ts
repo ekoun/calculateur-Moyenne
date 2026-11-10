@@ -16,4 +16,4 @@ export const router = createBrowserRouter([
       { path: "historique", Component: HistoriquePage },
     ],
   },
-]);
+], { basename: import.meta.env.BASE_URL });

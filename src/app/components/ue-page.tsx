@@ -23,12 +23,15 @@ export function UePage() {
   const [showModal, setShowModal] = useState(false);
 
   const calculateMoyenneUe = () => {
-    if (ecues.every((e) => !e.nom.trim() || e.moyenne === 0)) {
-      toast.error("Veuillez entrer au moins une ECUE avec sa moyenne");
+    const ecuesValides = ecues.filter((e) => e.nom.trim() && e.moyenne > 0 && e.credits > 0);
+
+    if (ecuesValides.length === 0) {
+      toast.error("Veuillez entrer au moins une ECUE complète avec sa moyenne et ses crédits");
       return;
     }
-    const totalCredits = ecues.reduce((sum, e) => sum + e.credits, 0);
-    const moyennePonderee = ecues.reduce(
+
+    const totalCredits = ecuesValides.reduce((sum, e) => sum + e.credits, 0);
+    const moyennePonderee = ecuesValides.reduce(
       (sum, e) => sum + e.moyenne * e.credits,
       0
     );
@@ -53,8 +56,16 @@ export function UePage() {
     setEcues(
       ecues.map((e) => {
         if (e.id !== id) return e;
-        if (field === "moyenne") return { ...e, [field]: Math.min(20, Math.max(0, Number(value))) };
-        if (field === "credits") return { ...e, [field]: Math.max(1, Number(value)) };
+
+        if (field === "moyenne") {
+          return { ...e, [field]: Math.min(20, Math.max(0, Number(value))) };
+        }
+
+        if (field === "credits") {
+          const nextValue = value === "" ? 0 : Number(value);
+          return { ...e, [field]: Math.max(0, nextValue) };
+        }
+
         return { ...e, [field]: value };
       })
     );
@@ -93,7 +104,7 @@ export function UePage() {
   const totalCredits = ecues.reduce((sum, e) => sum + e.credits, 0);
 
   return (
-    <div className="max-w-5xl mx-auto space-y-5 sm:space-y-6">
+    <div className="max-w-5xl mx-auto pt-2 sm:pt-3 space-y-5 sm:space-y-6">
       {/* Header */}
       <motion.div variants={fadeDown} initial="hidden" animate="visible" className="space-y-3">
         <h1 className="text-3xl sm:text-4xl font-bold text-foreground">Calcul Moyenne UE</h1>
@@ -202,12 +213,13 @@ export function UePage() {
                       </label>
                       <Input
                         type="number"
-                        min="1"
+                        min="0"
                         max="10"
-                        value={ecue.credits}
-                        onChange={(e) =>
-                          updateEcue(ecue.id, "credits", parseInt(e.target.value) || 1)
-                        }
+                        value={ecue.credits || ""}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          updateEcue(ecue.id, "credits", value === "" ? "" : Number(value));
+                        }}
                         className="h-11 rounded-lg"
                       />
                     </div>

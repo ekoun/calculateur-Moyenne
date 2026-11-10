@@ -117,7 +117,7 @@ export function HistoriquePage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-5 sm:space-y-6">
+    <div className="max-w-6xl mx-auto pt-2 sm:pt-3 space-y-5 sm:space-y-6">
       {/* Header */}
       <motion.div variants={fadeDown} initial="hidden" animate="visible" className="space-y-2">
         <h1 className="text-3xl sm:text-4xl font-bold text-foreground">Historique des Résultats</h1>
@@ -131,6 +131,8 @@ export function HistoriquePage() {
         variants={scaleIn}
         initial="hidden"
         animate="visible"
+        whileHover={{ y: -2 }}
+        transition={{ type: "spring", stiffness: 260, damping: 22 }}
         className="bg-card border border-border rounded-2xl shadow-lg p-5 sm:p-6"
       >
         <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
@@ -144,7 +146,9 @@ export function HistoriquePage() {
               {(["Tous", "ECUE", "UE", "Semestre"] as const).map((type) => (
                 <motion.button
                   key={type}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: "spring", stiffness: 260, damping: 24 }}
                   onClick={() => setFilter(type)}
                   className={`px-4 py-2 rounded-xl transition-all font-medium text-sm relative ${
                     filter === type
@@ -167,7 +171,7 @@ export function HistoriquePage() {
 
           {/* Actions */}
           <div className="flex flex-wrap gap-2.5">
-            <motion.div whileTap={{ scale: 0.97 }}>
+            <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }} transition={{ type: "spring", stiffness: 260, damping: 22 }}>
               <Button
                 onClick={exportToPDF}
                 disabled={history.length === 0}
@@ -177,7 +181,7 @@ export function HistoriquePage() {
                 Export PDF
               </Button>
             </motion.div>
-            <motion.div whileTap={{ scale: 0.97 }}>
+            <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }} transition={{ type: "spring", stiffness: 260, damping: 22 }}>
               <Button
                 variant="outline"
                 onClick={() => window.print()}
@@ -188,7 +192,7 @@ export function HistoriquePage() {
                 Imprimer
               </Button>
             </motion.div>
-            <motion.div whileTap={{ scale: 0.97 }}>
+            <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }} transition={{ type: "spring", stiffness: 260, damping: 22 }}>
               <Button
                 variant="destructive"
                 onClick={() => setShowConfirmClear(true)}
