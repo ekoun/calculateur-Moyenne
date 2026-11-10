@@ -3,12 +3,25 @@
   import App from "./app/App.tsx";
   import "./styles/index.css";
 
-  createRoot(document.getElementById("root")!).render(<App />);
+  const rootElement = document.getElementById("root");
+
+  if (rootElement) {
+    rootElement.setAttribute("translate", "no");
+    rootElement.classList.add("notranslate");
+  }
+
+  document.documentElement.lang = "fr";
+  document.documentElement.setAttribute("translate", "no");
+  document.documentElement.classList.add("notranslate");
+
+  createRoot(rootElement!).render(<App />);
 
 // register service worker for PWA installability
-if ('serviceWorker' in navigator) {
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(console.error);
+    navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`, {
+      scope: import.meta.env.BASE_URL,
+    }).catch(console.error);
   });
 }
   

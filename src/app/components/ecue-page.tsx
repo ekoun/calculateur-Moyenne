@@ -20,14 +20,15 @@ export function EcuePage() {
   const [showModal, setShowModal] = useState(false);
 
   const calculateMoyenne = () => {
-    // BUG FIX: parenthèses pour la bonne priorité d'opérateur
-    if (devoirs.length === 0 || (devoirs.every((d) => d.note === 0) && noteExamen === 0)) {
-      toast.error("Veuillez entrer au moins une note");
+    if (devoirs.length === 0 || devoirs.every((d) => d.note === 0)) {
+      toast.error("Veuillez entrer au moins une note de devoir");
       return;
     }
+
     const sommeDevoirs = devoirs.reduce((sum, d) => sum + d.note, 0);
     const moyenneDevoirs = sommeDevoirs / devoirs.length;
-    const moyenne = moyenneDevoirs * 0.4 + noteExamen * 0.6;
+    const moyenne = noteExamen > 0 ? moyenneDevoirs * 0.4 + noteExamen * 0.6 : moyenneDevoirs;
+
     setMoyenneEcue(Number(moyenne.toFixed(2)));
     setShowModal(true);
   };
@@ -84,7 +85,7 @@ export function EcuePage() {
     devoirs.reduce((sum, d) => sum + d.note, 0) / devoirs.length;
 
   return (
-    <div className="max-w-5xl mx-auto space-y-5 sm:space-y-6">
+    <div className="max-w-5xl mx-auto pt-2 sm:pt-3 space-y-5 sm:space-y-6">
       {/* Header */}
       <motion.div
         variants={fadeDown}
@@ -109,6 +110,8 @@ export function EcuePage() {
         variants={scaleIn}
         initial="hidden"
         animate="visible"
+        whileHover={{ y: -2, scale: 1.002 }}
+        transition={{ type: "spring", stiffness: 260, damping: 24 }}
         className="bg-card border border-border rounded-2xl shadow-xl overflow-hidden"
       >
         <div className="p-5 sm:p-8 space-y-6 sm:space-y-8">
@@ -143,10 +146,11 @@ export function EcuePage() {
                 <motion.div
                   key={devoir.id}
                   layout
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20, scale: 0.95 }}
-                  transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
+                  initial={{ opacity: 0, x: -12, y: 6 }}
+                  animate={{ opacity: 1, x: 0, y: 0 }}
+                  exit={{ opacity: 0, x: 12, y: -6, scale: 0.985 }}
+                  whileHover={{ y: -1 }}
+                  transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                   className="flex items-center gap-2.5"
                 >
                   <div className="shrink-0 w-24 sm:w-28 px-3 py-2.5 bg-muted rounded-lg text-center">
@@ -167,7 +171,7 @@ export function EcuePage() {
                     className="flex-1 h-12 rounded-xl"
                   />
                   {devoirs.length > 1 && (
-                    <motion.div whileTap={{ scale: 0.88 }}>
+                    <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} transition={{ type: "spring", stiffness: 260, damping: 22 }}>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -183,7 +187,7 @@ export function EcuePage() {
               ))}
             </AnimatePresence>
 
-            <motion.div whileTap={{ scale: 0.98 }}>
+            <motion.div whileHover={{ scale: 1.005 }} whileTap={{ scale: 0.99 }} transition={{ duration: 0.18 }}>
               <Button
                 variant="outline"
                 onClick={addDevoir}
@@ -198,7 +202,7 @@ export function EcuePage() {
           {/* Examen */}
           <div className="space-y-2">
             <label htmlFor="noteExamen" className="block text-sm font-semibold text-foreground">
-              Note d'Examen
+              Note d'Examen (facultative)
             </label>
             <Input
               id="noteExamen"
@@ -207,12 +211,11 @@ export function EcuePage() {
               max="20"
               step="0.5"
               value={noteExamen || ""}
-              onChange={(e) =>
-                setNoteExamen(
-                  Math.min(20, Math.max(0, parseFloat(e.target.value) || 0))
-                )
-              }
-              placeholder="Note sur 20"
+              onChange={(e) => {
+                const value = e.target.value;
+                setNoteExamen(value === "" ? 0 : Math.min(20, Math.max(0, parseFloat(value) || 0)));
+              }}
+              placeholder="Laisser vide si la note n'est pas encore disponible"
               className="h-12 rounded-xl"
             />
           </div>

@@ -1,11 +1,31 @@
 import * as React from "react";
 import { Outlet, Link, useLocation, useNavigation } from "react-router";
-import { Moon, Sun, Calculator, BookOpen, GraduationCap, History } from "lucide-react";
+import { Moon, Sun, Calculator, BookOpen, GraduationCap, History, Download } from "lucide-react";
 import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "motion/react";
-import logo from "../../imports/Group_135.svg";
 import logoMC from "../../imports/Group 169.svg";
 import { LoadingPage } from "./loading-page";
+import { Button } from "./ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
+
+type InstallPromptEvent = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
+};
+
+function isStandaloneMode() {
+  return typeof window !== "undefined" && (
+    window.matchMedia("(display-mode: standalone)").matches
+    || (navigator as Navigator & { standalone?: boolean }).standalone === true
+  );
+}
 
 const navItems = [
   { path: "/", label: "ECUE", icon: Calculator },
@@ -17,6 +37,34 @@ const navItems = [
 export function Root() {
   const { theme, setTheme } = useTheme();
   const location = useLocation();
+  const [installPrompt, setInstallPrompt] = React.useState<InstallPromptEvent | null>(null);
+  const [isInstalled, setIsInstalled] = React.useState(isStandaloneMode);
+  const [showInstallHelp, setShowInstallHelp] = React.useState(false);
+  const [showLaunchScreen, setShowLaunchScreen] = React.useState(isStandaloneMode);
+
+  React.useEffect(() => {
+    const launchTimer = showLaunchScreen
+      ? window.setTimeout(() => setShowLaunchScreen(false), 1600)
+      : undefined;
+
+    const handleBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setInstallPrompt(event as InstallPromptEvent);
+    };
+    const handleAppInstalled = () => {
+      setIsInstalled(true);
+      setInstallPrompt(null);
+      setShowInstallHelp(false);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener("appinstalled", handleAppInstalled);
+    return () => {
+      if (launchTimer !== undefined) window.clearTimeout(launchTimer);
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener("appinstalled", handleAppInstalled);
+    };
+  }, [showLaunchScreen]);
 
   const isActive = (path: string) => {
     if (path === "/") return location.pathname === "/";
@@ -37,9 +85,82 @@ export function Root() {
   }, [navigation.state]);
 
   const isNavLoading = showLoadingTest;
+  const handleInstall = async () => {
+    if (!installPrompt) {
+      setShowInstallHelp(true);
+      return;
+    }
+
+    try {
+      await installPrompt.prompt();
+      const { outcome } = await installPrompt.userChoice;
+      setInstallPrompt(null);
+      if (outcome === "accepted") setIsInstalled(true);
+    } catch {
+      setInstallPrompt(null);
+      setShowInstallHelp(true);
+    }
+  };
+  const renderInstallButton = (mobile: boolean) => (
+    <motion.button
+      type="button"
+      whileHover={{ scale: 1.01 }}
+      whileTap={{ scale: 0.99 }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
+      onClick={handleInstall}
+      title="Installer l’application"
+      aria-label="Installer l’application"
+      className={mobile
+        ? "h-9 w-9 p-2 rounded-lg hover:bg-muted transition-colors"
+        : "w-full h-9 flex items-center gap-2 px-3 rounded-lg border border-border bg-background text-sm font-medium text-foreground hover:bg-muted transition-colors"}
+    >
+      <Download className="h-4 w-4 shrink-0" />
+      {!mobile && <span>Installer</span>}
+    </motion.button>
+  );
+  const isAppleMobile = /iPhone|iPad|iPod/i.test(navigator.userAgent)
+    || (navigator.userAgent.includes("Macintosh") && navigator.maxTouchPoints > 1);
 
   return (
     <>
+      <AnimatePresence>
+        {showLaunchScreen && (
+          <motion.div
+            key="app-launch-screen"
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="flex flex-col items-center gap-4"
+            >
+              <motion.img
+                src={`${import.meta.env.BASE_URL}icons/icon-192.svg`}
+                alt=""
+                className="h-24 w-24 rounded-2xl shadow-lg"
+                initial={{ scale: 0.96, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.35, ease: "easeOut" }}
+              />
+              <div className="text-center">
+                <h1 className="text-xl font-bold text-primary">CM - REATD</h1>
+                <p className="mt-1 text-sm text-muted-foreground">Calculateur de Moyennes</p>
+              </div>
+            </motion.div>
+            <p
+              className="absolute inset-x-0 bottom-0 text-center text-sm font-medium text-muted-foreground"
+              style={{ paddingBottom: "calc(2rem + env(safe-area-inset-bottom))" }}
+            >
+              Mr Ekoun
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {isNavLoading && <LoadingPage />}
       <div className="flex min-h-screen bg-background">
 
@@ -47,11 +168,10 @@ export function Root() {
       <aside className="hidden lg:flex fixed top-0 h-screen w-64 bg-sidebar border-r border-sidebar-border flex-col shadow-xl z-50">
         {/* Logo */}
         <div className="p-6 border-b border-sidebar-border">
-          <Link to="/" className="flex items-center gap-3">
+          <Link to="/" className="flex items-center justify-center">
             <img src={logoMC} alt="CM" className="h-12 w-12" />
-            <img src={logo} alt="REATD" className="h-12 w-auto" />
           </Link>
-          <div className="mt-3 flex flex-col">
+          <div className="mt-3 flex flex-col items-center text-center">
             <span className="text-2xl font-bold text-primary">CM - REATD</span>
             <span className="text-xs text-muted-foreground tracking-wide">Calculateur de Moyennes</span>
           </div>
@@ -63,7 +183,12 @@ export function Root() {
             const Icon = item.icon;
             const active = isActive(item.path);
             return (
-              <motion.div key={item.path} whileHover={{ x: 3 }} whileTap={{ scale: 0.97 }}>
+              <motion.div
+                key={item.path}
+                whileHover={{ x: 2, scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                transition={{ type: "spring", stiffness: 280, damping: 24 }}
+              >
                 <Link
                   to={item.path}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors duration-200 relative overflow-hidden ${
@@ -76,7 +201,7 @@ export function Root() {
                     <motion.div
                       layoutId="desktopActiveNav"
                       className="absolute inset-0 bg-primary rounded-xl shadow-lg shadow-primary/25"
-                      transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                      transition={{ type: "spring", stiffness: 280, damping: 26 }}
                     />
                   )}
                   <Icon className="h-5 w-5 relative z-10 shrink-0" />
@@ -87,10 +212,17 @@ export function Root() {
           })}
         </nav>
 
+        {!isInstalled && (
+          <div className="px-4 pb-4">
+            {renderInstallButton(false)}
+          </div>
+        )}
+
         {/* Theme Toggle */}
         <div className="p-4 border-t border-sidebar-border">
           <motion.button
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-sidebar-accent transition-colors"
           >
@@ -98,10 +230,10 @@ export function Root() {
               {theme === "dark" ? (
                 <motion.div
                   key="sun"
-                  initial={{ rotate: -90, opacity: 0 }}
-                  animate={{ rotate: 0, opacity: 1 }}
-                  exit={{ rotate: 90, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
+                  initial={{ rotate: -60, opacity: 0, x: -4 }}
+                  animate={{ rotate: 0, opacity: 1, x: 0 }}
+                  exit={{ rotate: 60, opacity: 0, x: 4 }}
+                  transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                   className="flex items-center gap-3"
                 >
                   <Sun className="h-5 w-5 shrink-0" />
@@ -110,10 +242,10 @@ export function Root() {
               ) : (
                 <motion.div
                   key="moon"
-                  initial={{ rotate: 90, opacity: 0 }}
-                  animate={{ rotate: 0, opacity: 1 }}
-                  exit={{ rotate: -90, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
+                  initial={{ rotate: 60, opacity: 0, x: 4 }}
+                  animate={{ rotate: 0, opacity: 1, x: 0 }}
+                  exit={{ rotate: -60, opacity: 0, x: -4 }}
+                  transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                   className="flex items-center gap-3"
                 >
                   <Moon className="h-5 w-5 shrink-0" />
@@ -131,33 +263,36 @@ export function Root() {
 
       {/* ── Mobile Top Header ── */}
       <header className="lg:hidden fixed top-0 left-0 right-0 h-[60px] bg-card/80 backdrop-blur-xl border-b border-border z-50 shadow-sm">
-        <div className="h-full px-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2.5">
-            <img src={logoMC} alt="CM" className="h-8 w-8" />
+        <div className="relative h-full px-4 flex items-center justify-end">
+          <Link to="/" className="absolute left-1/2 flex -translate-x-1/2 items-center gap-2">
+            <img src={logoMC} alt="CM" className="h-8 w-8 shrink-0" />
             <div className="flex flex-col leading-none">
               <span className="text-sm font-bold text-primary">CM - REATD</span>
-              <span className="text-[10px] text-muted-foreground">Calculateur de Moyennes</span>
+              <span className="hidden text-[10px] text-muted-foreground sm:block">Calculateur de Moyennes</span>
             </div>
           </Link>
 
-          <motion.button
-            whileTap={{ scale: 0.88, rotate: 15 }}
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="p-2.5 rounded-xl hover:bg-muted transition-colors"
-            aria-label="Changer de thème"
-          >
-            <AnimatePresence mode="wait" initial={false}>
-              {theme === "dark" ? (
-                <motion.div key="sun" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.18 }}>
-                  <Sun className="h-5 w-5" />
-                </motion.div>
-              ) : (
-                <motion.div key="moon" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.18 }}>
-                  <Moon className="h-5 w-5" />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.button>
+          <div className="flex items-center gap-1">
+            {!isInstalled && renderInstallButton(true)}
+            <motion.button
+              whileTap={{ scale: 0.88, rotate: 15 }}
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="p-2.5 rounded-xl hover:bg-muted transition-colors"
+              aria-label="Changer de thème"
+            >
+              <AnimatePresence mode="wait" initial={false}>
+                {theme === "dark" ? (
+                  <motion.div key="sun" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.18 }}>
+                    <Sun className="h-5 w-5" />
+                  </motion.div>
+                ) : (
+                  <motion.div key="moon" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.18 }}>
+                    <Moon className="h-5 w-5" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.button>
+          </div>
         </div>
       </header>
 
@@ -218,6 +353,27 @@ export function Root() {
           })}
         </div>
       </nav>
+
+      <Dialog open={showInstallHelp} onOpenChange={setShowInstallHelp}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Installer l’application</DialogTitle>
+            <DialogDescription>
+              {isAppleMobile
+                ? "Dans Safari, touchez Partager, puis « Sur l’écran d’accueil » et enfin « Ajouter »."
+                : "Ouvrez le menu de votre navigateur et choisissez « Installer l’application » ou « Ajouter à l’écran d’accueil »."}
+            </DialogDescription>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Si l’option n’apparaît pas, ouvrez le site avec un navigateur compatible et vérifiez qu’il est consulté en HTTPS.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowInstallHelp(false)}>
+              Fermer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* ── End of Main Content ── */}
     </div>

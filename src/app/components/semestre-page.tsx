@@ -22,12 +22,15 @@ export function SemestrePage() {
   const [showModal, setShowModal] = useState(false);
 
   const calculateMoyenneSemestre = () => {
-    if (ues.every((u) => !u.nom.trim() || u.moyenne === 0)) {
-      toast.error("Veuillez entrer au moins une UE avec sa moyenne");
+    const uesValides = ues.filter((u) => u.nom.trim() && u.moyenne > 0 && u.credits > 0);
+
+    if (uesValides.length === 0) {
+      toast.error("Veuillez entrer au moins une UE complète avec sa moyenne et ses crédits");
       return;
     }
-    const totalCredits = ues.reduce((sum, u) => sum + u.credits, 0);
-    const moyennePonderee = ues.reduce((sum, u) => sum + u.moyenne * u.credits, 0);
+
+    const totalCredits = uesValides.reduce((sum, u) => sum + u.credits, 0);
+    const moyennePonderee = uesValides.reduce((sum, u) => sum + u.moyenne * u.credits, 0);
     const moyenne = moyennePonderee / totalCredits;
     setMoyenneSemestre(Number(moyenne.toFixed(2)));
     setStatut(moyenne >= 10 ? "Admis" : moyenne >= 8 ? "Rattrapage" : "Ajourné");
@@ -51,8 +54,17 @@ export function SemestrePage() {
     setUes(
       ues.map((u) => {
         if (u.id !== id) return u;
-        if (field === "moyenne") return { ...u, [field]: Math.min(20, Math.max(0, Number(value))) };
-        if (field === "credits") return { ...u, [field]: Math.max(1, Number(value)) };
+
+        if (field === "moyenne") {
+          const numericValue = value === "" ? 0 : Number(value);
+          return { ...u, moyenne: Number.isFinite(numericValue) ? Math.min(20, Math.max(0, numericValue)) : 0 };
+        }
+
+        if (field === "credits") {
+          const numericValue = value === "" ? 0 : Number(value);
+          return { ...u, credits: Number.isFinite(numericValue) ? Math.max(0, numericValue) : 0 };
+        }
+
         return { ...u, [field]: value };
       })
     );
@@ -89,7 +101,7 @@ export function SemestrePage() {
   const totalCredits = ues.reduce((sum, u) => sum + u.credits, 0);
 
   return (
-    <div className="max-w-5xl mx-auto space-y-5 sm:space-y-6">
+    <div className="max-w-5xl mx-auto pt-2 sm:pt-3 space-y-5 sm:space-y-6">
       {/* Header */}
       <motion.div variants={fadeDown} initial="hidden" animate="visible" className="space-y-3">
         <h1 className="text-3xl sm:text-4xl font-bold text-foreground">Calcul Moyenne Semestre</h1>
@@ -115,6 +127,8 @@ export function SemestrePage() {
         variants={scaleIn}
         initial="hidden"
         animate="visible"
+        whileHover={{ y: -2, scale: 1.002 }}
+        transition={{ type: "spring", stiffness: 260, damping: 24 }}
         className="bg-card border border-border rounded-2xl shadow-xl overflow-hidden"
       >
         <div className="p-5 sm:p-8 space-y-6 sm:space-y-8">
@@ -147,16 +161,17 @@ export function SemestrePage() {
                 <motion.div
                   key={ue.id}
                   layout
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95, y: -8 }}
-                  transition={{ duration: 0.28, ease: [0.25, 0.46, 0.45, 0.94] }}
+                  initial={{ opacity: 0, y: 10, scale: 0.985 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.985, y: -8 }}
+                  whileHover={{ y: -1 }}
+                  transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                   className="bg-muted/30 border border-border rounded-xl p-4 sm:p-5"
                 >
                   <div className="flex items-center justify-between mb-4">
                     <h4 className="font-semibold text-foreground">UE {index + 1}</h4>
                     {ues.length > 1 && (
-                      <motion.div whileTap={{ scale: 0.88 }}>
+                      <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} transition={{ type: "spring", stiffness: 260, damping: 22 }}>
                         <Button
                           variant="ghost"
                           size="icon"
@@ -206,12 +221,13 @@ export function SemestrePage() {
                       </label>
                       <Input
                         type="number"
-                        min="1"
+                        min="0"
                         max="30"
-                        value={ue.credits}
-                        onChange={(e) =>
-                          updateUe(ue.id, "credits", parseInt(e.target.value) || 1)
-                        }
+                        value={ue.credits || ""}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          updateUe(ue.id, "credits", value === "" ? "" : parseInt(value, 10));
+                        }}
                         className="h-11 rounded-lg"
                       />
                     </div>
